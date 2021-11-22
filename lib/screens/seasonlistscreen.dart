@@ -1,107 +1,89 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/manager.service.dart';
 import 'package:flutter_application_1/models/setuplocator.dart';
+import 'package:flutter_application_1/models/tournament.dart';
 import 'package:flutter_application_1/models/year.dart';
 import 'package:flutter_application_1/screens/seasondetailscreen.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_application_1/screens/teamchartscreen.dart';
 
 class SeasonListScreen extends StatefulWidget {
   SeasonListScreen({Key? key}) : super(key: key);
 
   @override
-  _SeasonListScreenState createState() => _SeasonListScreenState();
+  _SeasonListState createState() => _SeasonListState();
 }
 
-class _SeasonListScreenState extends State<SeasonListScreen> {
-  late Future<Year> futureYear;
-  late Future futureYears;
+class _SeasonListState extends State<SeasonListScreen> {
+  late Future<List<Year>> futureYears;
+  late Future<List<Tournament>> futureTournaments;
+  int currentYear = 20038;
+  var manager;
 
   @override
   void initState() {
     super.initState();
-    var manager = locator<ManagerService>();
-    futureYear = manager.getYear(2);
+    manager = locator<ManagerService>();
     futureYears = manager.getYears();
+    futureTournaments = manager.getTournaments(currentYear);
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { 
     return Scaffold(
         appBar: AppBar(
-          title: Text("Seasons3"),
-        ),
-        body:
-            Column(
+          title: Text("Tornei2"),
+        ),        
+        body: 
+          Container(decoration:
+            BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage("https://scontent.fqpa3-2.fna.fbcdn.net/v/t1.6435-9/43397684_2378975292142162_2317381267055706112_n.jpg?_nc_cat=103&ccb=1-5&_nc_sid=174925&_nc_ohc=Ezk6rzNdd9EAX8yy7qj&_nc_ht=scontent.fqpa3-2.fna&oh=3a5c02f72cac723ed7666fb1c3815b12&oe=61BE249F"),
+                fit: BoxFit.contain,
+              ),
+            ),
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly, 
               children: [
-                ElevatedButton(
-                      // Within the `FirstScreen` widget
-                      onPressed: () {
-                        // Navigate to the second screen using a named route.
-                        showAlertDialog(context);
-                      },
-                      child: Text("Alert"),
-                    ),
-                Expanded(
-                  child: Center(
-                    child: FutureBuilder<Year>(
-                      future: futureYear,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          return Text(snapshot.data!.name);
-                        } else if (snapshot.hasError) {
-                          return Text("${snapshot.error}");
-                        }
-                        return CircularProgressIndicator();
-                      },
-                  ))),
-                Expanded(child: SeasonList(futureYears)),
+                FutureBuilder<List<Year>> (
+                    future: futureYears,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        //List<Year> years = snapshot.data as List<Year>;
+                        return Center(child: DropdownButton<int>(
+                          value: currentYear,
+                          items: snapshot.data?.map((Year value) {
+                            return new DropdownMenuItem<int>(
+                              value: value.id,
+                              child: Text(
+                                value.name,
+                                style: TextStyle(fontSize: 24.0),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (shape) {                            
+                            print(shape);
+                            setState(() {
+                              currentYear = shape ?? 0;
+                              futureTournaments = manager.getTournaments(currentYear);
+                            });
+                          }));
+                      }
+                      return CircularProgressIndicator();
+                    },
+                ),
+                Expanded(child: TournamentList(futureTournaments)),
+                Text(currentYear.toString()),
               ]
             )
-          );
+          ));
   }
-
-  // Future<Year> fetchYear(int id) async {
-  //   final response = await http.get(
-  //       Uri.https('hockey-manager-api.azurewebsites.net', 'odata/years/$id'));
-
-  //   if (response.statusCode == 200) {
-  //     // If the server did return a 200 OK response,
-  //     // then parse the JSON.
-  //     //var value =
-  //     return Year.fromJson(jsonDecode(response.body)['value'][0]);
-  //   } else {
-  //     // If the server did not return a 200 OK response,
-  //     // then throw an exception.
-  //     throw Exception('Failed to load album');
-  //   }
-  // }
-
-  // Future fetchYears() async {
-  //   final response = await http
-  //       .get(Uri.https('hockey-manager-api.azurewebsites.net', 'odata/years'));
-
-  //   if (response.statusCode == 200) {
-  //     // If the server did return a 200 OK response,
-  //     // then parse the JSON.
-  //     //var value =
-  //     var value =
-  //         jsonDecode(response.body)['value'].map((i) => Year.fromJson(i));
-  //     return value.toList();
-  //   } else {
-  //     // If the server did not return a 200 OK response,
-  //     // then throw an exception.
-  //     throw Exception('Failed to load album');
-  //   }
-  // }
 }
 
-class SeasonList extends StatelessWidget {
+class TournamentList extends StatelessWidget {
   final Future futureYears;
 
   @override
-  SeasonList(this.futureYears);
+  TournamentList(this.futureYears);
 
   @override
   Widget build(BuildContext context) {
@@ -109,57 +91,33 @@ class SeasonList extends StatelessWidget {
         future: futureYears,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.hasData) {
-            print(snapshot.data[0].name);
-            return ListView.builder(
+            if(snapshot.data.length == 0)
+              return Text("no data");
+            else
+              return ListView.builder(
                 padding: EdgeInsets.all(8),
                 itemCount: snapshot.data.length,
                 itemBuilder: (BuildContext context, int index) {
                   var item = snapshot.data[index];
-                  return Row(children: [
-                    Center(child: Text(item.name)),
-                    ElevatedButton(
-                      // Within the `FirstScreen` widget
-                      onPressed: () {
-                        // Navigate to the second screen using a named route.
-                        Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => SeasonDetailScreen(item.id))
-                        );
-                      },
-                      child: Text(item.id.toString()),
-                    )
-                  ]);
+                  return GestureDetector(
+                    child: Container(
+                      margin: EdgeInsets.all(5.0),
+                      height: 100,
+                      decoration: BoxDecoration(color: Color.fromARGB(240, 120, 120, 120)),
+                      child: Center(child: Text(item.name, 
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white70
+                      )))
+                    ),
+                    onTap: () => Navigator.push(context,
+                       MaterialPageRoute(builder: (context) => SeasonDetailScreen(item.id))
+                    )                  
+                  );
                 });
           } else {
             return Center(child: CircularProgressIndicator());
           }
         });
   }
-}
-
-showAlertDialog(BuildContext context) {
-
-  // set up the button
-  Widget okButton = TextButton(
-    child: Text("OK"),
-    onPressed: () { 
-      Navigator.of(context).pop();
-    },
-  );
-
-  // set up the AlertDialog
-  AlertDialog alert = AlertDialog(
-    title: Text("My title"),
-    content: Text("This is my message."),
-    actions: [
-      okButton,
-    ],
-  );
-
-  // show the dialog
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return alert;
-    },
-  );
 }

@@ -1,19 +1,20 @@
 class Year {
-  final int id;
-  final String name;
-  final String dateStart;
-  final String dateEnd;
-  final bool isCurrent;
+  int id;
+  String name;
+  DateTime dateStart;
+  DateTime dateEnd;
+  bool isCurrent;
 
-  Year({required this.id, required this.name, required this.dateStart, required this.dateEnd, required this.isCurrent});
+  Year({required this.id, required this.name, required this.dateStart, 
+    required this.dateEnd, required this.isCurrent});
 
   factory Year.fromJson(Map<String, dynamic> json) {
-    var value = json; // json['value'][0];
+    var value = json;
     return Year(
       id: value['ID'],
       name: value['Name'],
-      dateStart: value['DateStart'],
-      dateEnd: value['DateEnd'],
+      dateStart: DateTime.parse(value['DateStart']),
+      dateEnd: DateTime.parse(value['DateEnd']),
       isCurrent: value['IsCurrent'],
     );
   }

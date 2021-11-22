@@ -1,13 +1,9 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:developer' as developer;
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_application_1/screens/playerchartscreen.dart';
+import 'package:flutter_application_1/screens/playerstatscreen.dart';
+import 'package:flutter_application_1/screens/teamchartscreen.dart';
 
 import 'models/setuplocator.dart';
-import 'screens/homescreen.dart';
-import 'screens/playerlistscreen.dart';
 import 'screens/seasondetailscreen.dart';
 import 'screens/seasonlistscreen.dart';
 
@@ -21,9 +17,11 @@ void main() {
       initialRoute: '/',
       routes: {
         // When navigating to the "/" route, build the FirstScreen widget.
-        '/': (context) => HomeScreen(),
+        '/': (context) => SeasonListScreen(),
         // When navigating to the "/second" route, build the SecondScreen widget.
-        '/playerlist': (context) => PlayerListScreen(),
+        '/playerchart': (context) => PlayerChartScreen(0),
+        '/playerstat': (context) => PlayerStatScreen(0),
+        '/teamchart': (context) => TeamChartScreen(0),
         '/seasonlist': (context) => SeasonListScreen(),
         '/seasondetail': (context) => SeasonDetailScreen(1),
       },

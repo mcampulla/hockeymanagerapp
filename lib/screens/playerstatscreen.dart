@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 
-class PlayerListScreen extends StatelessWidget {
+class PlayerStatScreen extends StatelessWidget {
+  final int id;
+
+  PlayerStatScreen(this.id);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("Players"),
+          title: Text("PlayerStatScreen"),
         ),
         body: Center(
-          child: Text("PlayerListScreen"),
+          child: Text("PlayerStatScreen - $id"),
         ));
   }
 }

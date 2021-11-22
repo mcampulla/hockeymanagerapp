@@ -1,8 +1,8 @@
 class Club {
-  final int id;
-  final String name;
-  final String tag;
-  final String icon;
+  int id;
+  String name;
+  String tag;
+  String icon;
 
   Club({required this.id, required this.name, required this.tag, required this.icon});
 
