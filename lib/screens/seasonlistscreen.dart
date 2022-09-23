@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/models/manager.service.dart';
-import 'package:flutter_application_1/models/setuplocator.dart';
-import 'package:flutter_application_1/models/tournament.dart';
-import 'package:flutter_application_1/models/year.dart';
-import 'package:flutter_application_1/screens/seasondetailscreen.dart';
-import 'package:flutter_application_1/screens/teamchartscreen.dart';
+import 'package:ghosts/models/manager.service.dart';
+import 'package:ghosts/models/settings.dart';
+import 'package:ghosts/models/setuplocator.dart';
+import 'package:ghosts/models/tournament.dart';
+import 'package:ghosts/models/year.dart';
+import 'package:ghosts/screens/seasondetailscreen.dart';
+import 'package:ghosts/screens/settingscreen.dart';
 
 class SeasonListScreen extends StatefulWidget {
   SeasonListScreen({Key? key}) : super(key: key);
@@ -16,7 +17,7 @@ class SeasonListScreen extends StatefulWidget {
 class _SeasonListState extends State<SeasonListScreen> {
   late Future<List<Year>> futureYears;
   late Future<List<Tournament>> futureTournaments;
-  int currentYear = 20038;
+  int currentYear = Settings.favyear;
   var manager;
 
   @override
@@ -31,16 +32,28 @@ class _SeasonListState extends State<SeasonListScreen> {
   Widget build(BuildContext context) { 
     return Scaffold(
         appBar: AppBar(
-          title: Text("Tornei2"),
-        ),        
-        body: 
-          Container(decoration:
-            BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage("https://scontent.fqpa3-2.fna.fbcdn.net/v/t1.6435-9/43397684_2378975292142162_2317381267055706112_n.jpg?_nc_cat=103&ccb=1-5&_nc_sid=174925&_nc_ohc=Ezk6rzNdd9EAX8yy7qj&_nc_ht=scontent.fqpa3-2.fna&oh=3a5c02f72cac723ed7666fb1c3815b12&oe=61BE249F"),
-                fit: BoxFit.contain,
+          title: Text("Tornei"),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(
+                Icons.settings,
+                color: Colors.white,
               ),
-            ),
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => SettingScreen()));
+              },
+            )
+        ],      
+        ),
+        body: 
+          Container(
+            // decoration:
+            // BoxDecoration(
+            //   image: DecorationImage(
+            //     image: NetworkImage("https://scontent.fqpa3-2.fna.fbcdn.net/v/t1.6435-9/43397684_2378975292142162_2317381267055706112_n.jpg?_nc_cat=103&ccb=1-5&_nc_sid=174925&_nc_ohc=Ezk6rzNdd9EAX8yy7qj&_nc_ht=scontent.fqpa3-2.fna&oh=3a5c02f72cac723ed7666fb1c3815b12&oe=61BE249F"),
+            //     fit: BoxFit.contain,
+            //   ),
+            // ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly, 
               children: [
@@ -49,14 +62,18 @@ class _SeasonListState extends State<SeasonListScreen> {
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         //List<Year> years = snapshot.data as List<Year>;
-                        return Center(child: DropdownButton<int>(
+                        return Center(child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                        Text('Stagione:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                        Center(child: DropdownButton<int>(
                           value: currentYear,
                           items: snapshot.data?.map((Year value) {
                             return new DropdownMenuItem<int>(
                               value: value.id,
                               child: Text(
                                 value.name,
-                                style: TextStyle(fontSize: 24.0),
+                                style: TextStyle(fontSize: 20.0),
                               ),
                             );
                           }).toList(),
@@ -66,13 +83,14 @@ class _SeasonListState extends State<SeasonListScreen> {
                               currentYear = shape ?? 0;
                               futureTournaments = manager.getTournaments(currentYear);
                             });
-                          }));
+                          }))
+                        ])); 
                       }
                       return CircularProgressIndicator();
                     },
                 ),
                 Expanded(child: TournamentList(futureTournaments)),
-                Text(currentYear.toString()),
+                //Text(currentYear.toString()),
               ]
             )
           ));
@@ -106,12 +124,13 @@ class TournamentList extends StatelessWidget {
                       decoration: BoxDecoration(color: Color.fromARGB(240, 120, 120, 120)),
                       child: Center(child: Text(item.name, 
                         style: TextStyle(
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: Colors.white70
                       )))
                     ),
                     onTap: () => Navigator.push(context,
-                       MaterialPageRoute(builder: (context) => SeasonDetailScreen(item.id))
+                       MaterialPageRoute(builder: (context) => SeasonDetailScreen(item.id, 0))
                     )                  
                   );
                 });

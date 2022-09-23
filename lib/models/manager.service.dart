@@ -98,7 +98,7 @@ class ManagerService {
   }
 
   Future<List<MatchStat>> getMatchStatsByPhase(int pid) async {
-    final response = await http.get(Uri.parse('$api/odata/matchstats?\$filter=match/tournamentmatchday/tournamentphaseid eq $pid&\$expand=player,match(\$expand=tournamentmatchday)'));
+    final response = await http.get(Uri.parse('$api/odata/matchstats?\$filter=match/tournamentmatchday/tournamentphaseid eq $pid&\$expand=player,match(\$expand=tournamentmatchday,homeclub,awayclub)'));
 
     if (response.statusCode == 200) {
       var value = jsonDecode(response.body)['value'].map((i) => MatchStat.fromJson(i));

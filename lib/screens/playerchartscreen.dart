@@ -1,33 +1,57 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/models/setuplocator.dart';
-import 'package:flutter_application_1/models/manager.service.dart';
-import 'package:flutter_application_1/models/player.dart';
-import 'package:flutter_application_1/models/match.dart';
-import 'package:flutter_application_1/models/chart.dart';
+import 'package:ghosts/models/setuplocator.dart';
+import 'package:ghosts/models/manager.service.dart';
+import 'package:ghosts/models/player.dart';
+import 'package:ghosts/models/match.dart';
+import 'package:ghosts/models/chart.dart';
+import 'package:ghosts/models/tournament.dart';
+import 'package:ghosts/screens/playerdetailscreen.dart';
+import 'package:ghosts/screens/playerstatscreen.dart';
+import 'package:ghosts/screens/seasondetailscreen.dart';
+import 'package:ghosts/screens/teamchartscreen.dart';
 
 class PlayerChartScreen extends StatefulWidget {
+  final int tournamentid;
   final int id;
-  PlayerChartScreen(this.id);
+  PlayerChartScreen(this.tournamentid, this.id);
 
   @override
   _PlayerChartScreenState createState() => _PlayerChartScreenState();
 }
 
 class _PlayerChartScreenState extends State<PlayerChartScreen> {
+  Tournament tournament = Tournament();
   List<MatchStat> stats = [];
   List<PlayerChart> charts = [];
   int _currentSortColumn = 0;
   bool _isSortAsc = true;
+  List<Phase> phases = [];
+  int currentPhase = 0;
   var manager;
 
   @override
   void initState() {
     super.initState();
     manager = locator<ManagerService>();
-    manager.getMatchStatsByPhase(widget.id).then((data) {
+    manager.getTournament(widget.tournamentid).then((data) {
       setState(() {
-        stats = data;
-        charts = getPlayerCharts(stats);
+        this.tournament = data;
+      });
+    });
+    manager.getPhases(widget.tournamentid).then((data) {
+      setState(() {
+        this.phases = data;
+        if (data.length != 0 && widget.id == 0) {
+          this.currentPhase = data[0].id;
+        } else {
+          currentPhase = widget.id;
+        }
+        manager.getMatchStatsByPhase(currentPhase).then((data) {
+          setState(() {
+            stats = data;
+            charts = getPlayerCharts(stats);
+          });
+        });
       });
     });
   }
@@ -36,11 +60,70 @@ class _PlayerChartScreenState extends State<PlayerChartScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("PlayerChartScreen"),
+          title: Text("Classifica giocatori"),
+        ),
+         bottomNavigationBar: BottomNavigationBar(
+          items: [
+            BottomNavigationBarItem(icon: Icon(Icons.calendar_view_month_outlined), label: 'Stagione'),
+            BottomNavigationBarItem(icon: Icon(Icons.article_outlined), label: 'Classifica'),
+            BottomNavigationBarItem(icon: Icon(Icons.account_circle_outlined), label: 'Giocatori'),
+            BottomNavigationBarItem(icon: Icon(Icons.add_chart_outlined), label: 'Statistiche')
+          ],
+          currentIndex: 2,
+          //selectedItemColor: Colors.amber[800],
+          type: BottomNavigationBarType.fixed,
+          fixedColor: Colors.orange.shade300,  
+          onTap: (int index) {
+            print(index.toString());
+            switch (index) {
+              case 0:
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SeasonDetailScreen(widget.tournamentid, currentPhase)));
+                break;
+              case 1:
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TeamChartScreen(widget.tournamentid, currentPhase)));
+                break;
+              case 2:
+                //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerChartScreen(widget.id)));
+                break;
+              case 3:
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerStatScreen(widget.tournamentid, currentPhase)));
+                break;
+              default:
+            }              
+          },
         ),
         body: ListView(
           children: [
-            _createDataTable()
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(tournament.name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,)),
+                  DropdownButton<int>(
+                  value: currentPhase,
+                  items: phases.map((Phase value) {
+                    return new DropdownMenuItem<int>(
+                      value: value.id,
+                      child: Text(
+                        value.name,
+                        style: TextStyle(fontSize: 24.0),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (shape) {
+                    print(shape);
+                    manager.getMatchStatsByPhase(shape).then((data) {
+                      setState(() {
+                        currentPhase = shape ?? 0;
+                        stats = data;
+                        charts = getPlayerCharts(stats);
+                      });
+                    });
+                  }),
+              ],),
+            ),
+            currentPhase != 0 ? 
+            _createDataTable() : Center(child: CircularProgressIndicator())
           ],
         ),);
   }
@@ -57,7 +140,7 @@ class _PlayerChartScreenState extends State<PlayerChartScreen> {
 
   List<DataColumn> _createColumns() {
     return [
-      DataColumn(label: Text('Player')),
+      DataColumn(label: Text('Giocatore')),
       _createColumn('P'),
       _createColumn('G'),
       _createColumn('A'),
@@ -132,7 +215,11 @@ class _PlayerChartScreenState extends State<PlayerChartScreen> {
     List<DataRow> rows = [];
     for (var c in charts) {
       rows.add(DataRow(cells: [
-        DataCell(Text('${c.name}')),
+        DataCell(GestureDetector(
+          child: Text('${c.name.toUpperCase()}')),
+          onTap: () => Navigator.push(context, 
+            MaterialPageRoute(builder: (context) => PlayerDetailScreen(currentPhase, c.id))
+        )),
         DataCell(Text('${c.point}')),
         DataCell(Text('${c.goal}')),
         DataCell(Text('${c.assist}')),

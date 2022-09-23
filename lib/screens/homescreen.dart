@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/models/manager.service.dart';
-import 'package:flutter_application_1/models/setuplocator.dart';
-import 'package:flutter_application_1/models/tournament.dart';
-import 'package:flutter_application_1/models/year.dart';
-import 'package:flutter_application_1/screens/seasondetailscreen.dart';
+import 'package:ghosts/models/manager.service.dart';
+import 'package:ghosts/models/setuplocator.dart';
+import 'package:ghosts/models/tournament.dart';
+import 'package:ghosts/models/year.dart';
+import 'package:ghosts/screens/seasondetailscreen.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -16,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Year>> futureYears;
   late Future<List<Tournament>> futureTournaments;
-  int currentYear = 20038;
+  int currentYear = 20039;
 var manager;
 
   @override
@@ -34,13 +34,14 @@ var manager;
           title: Text("Tornei"),
         ),
         body: 
-          Container(decoration:
-            BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage("https://scontent.fqpa3-2.fna.fbcdn.net/v/t1.6435-9/43397684_2378975292142162_2317381267055706112_n.jpg?_nc_cat=103&ccb=1-5&_nc_sid=174925&_nc_ohc=Ezk6rzNdd9EAX8yy7qj&_nc_ht=scontent.fqpa3-2.fna&oh=3a5c02f72cac723ed7666fb1c3815b12&oe=61BE249F"),
-                fit: BoxFit.contain,
-              ),
-            ),
+          Container(
+            // decoration:
+            // BoxDecoration(
+            //   image: DecorationImage(
+            //     image: NetworkImage("https://scontent.fqpa3-2.fna.fbcdn.net/v/t1.6435-9/43397684_2378975292142162_2317381267055706112_n.jpg?_nc_cat=103&ccb=1-5&_nc_sid=174925&_nc_ohc=Ezk6rzNdd9EAX8yy7qj&_nc_ht=scontent.fqpa3-2.fna&oh=3a5c02f72cac723ed7666fb1c3815b12&oe=61BE249F"),
+            //     fit: BoxFit.contain,
+            //   ),
+            // ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly, 
               children: [
@@ -154,7 +155,7 @@ class TournamentList extends StatelessWidget {
                       )))
                     ),
                     onTap: () => Navigator.push(context,
-                       MaterialPageRoute(builder: (context) => SeasonDetailScreen(item.id))
+                       MaterialPageRoute(builder: (context) => SeasonDetailScreen(item.id, 0))
                     )                  
                   );
                   // return Row(children: [

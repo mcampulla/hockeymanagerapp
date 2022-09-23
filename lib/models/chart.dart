@@ -20,6 +20,8 @@ class TeamChart {
 class PlayerChart {
   int id = 0;
   String name = '';
+  String icon = '';
+  int played = 0;
   int goal = 0;
   int assist = 0;
   int point = 0;

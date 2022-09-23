@@ -24,20 +24,21 @@ class Player {
 
   Player();
   Player.init({required this.id, required this.fisrcode, required this.fisrclub, required this.lastname, 
-    required this.firstname, required this.birthdate, required this.role, 
+    required this.firstname, required this.birthdate, required this.role, required this.photo,
     required this.isactive});
 
   factory Player.fromJson(Map<String, dynamic> json) {
     var value = json;
     Player match = Player.init(  
       id: value['ID'],
-      fisrcode: value['FisrCode'],
-      fisrclub: value['FisrClub'], 
+      fisrcode: value['FisrCode'] ?? '',
+      fisrclub: value['FisrClub'] ?? '', 
       lastname: value['LastName'],
       firstname: value['FirstName'],
       birthdate: DateTime.parse(value['BirthDate']),
       //stick: value['Stick'],
       role: value['Role'],
+      photo: value['Photo'] ?? '',
       isactive: value['IsActive']
     );
     return match;

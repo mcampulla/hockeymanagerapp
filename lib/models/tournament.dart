@@ -1,32 +1,33 @@
-import 'package:flutter_application_1/models/category.dart';
-import 'package:flutter_application_1/models/club.dart';
-import 'package:flutter_application_1/models/match.dart';
-import 'package:flutter_application_1/models/year.dart';
+import 'package:ghosts/models/category.dart';
+import 'package:ghosts/models/club.dart';
+import 'package:ghosts/models/match.dart';
+import 'package:ghosts/models/year.dart';
 
 class Tournament {
-  int id;
-  String name;
+  int id = 0;
+  String name = '';
   Year year = Year(id: 0, name: '', dateStart: DateTime.now(), dateEnd: DateTime.now(), isCurrent: false);
-  int yearid;
+  int yearid = 0;
   Category category = Category(id: 0, name: '', tag: '', isenabled: false);
-  int categoryid;
-  int periodnumber;
-  int periodlength;
-  int overtimenumber;
-  int overtimelength;
-  int drawpoint;
-  int winpoint;
-  int bonuspoint;
-  int status;
+  int categoryid = 0;
+  int periodnumber = 0;
+  int periodlength = 0;
+  int overtimenumber = 0;
+  int overtimelength = 0;
+  int drawpoint = 0;
+  int winpoint = 0;
+  int bonuspoint = 0;
+  int status = 0;
 
-  Tournament({required this.id, required this.name, required this.yearid, required this.categoryid, 
+  Tournament();
+  Tournament.init({required this.id, required this.name, required this.yearid, required this.categoryid, 
     required this.periodnumber, required this.periodlength, required this.overtimenumber, 
     required this.overtimelength, required this.drawpoint, required this.winpoint, 
     required this.bonuspoint, required this.status});
 
   factory Tournament.fromJson(Map<String, dynamic> json) {
     var value = json; // json['value'][0];
-    Tournament tournament = Tournament(
+    Tournament tournament = Tournament.init(
       id: value['ID'],
       name: value['Name'],
       yearid: value['YearID'],

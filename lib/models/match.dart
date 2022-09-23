@@ -1,5 +1,5 @@
-import 'package:flutter_application_1/models/club.dart';
-import 'package:flutter_application_1/models/player.dart';
+import 'package:ghosts/models/club.dart';
+import 'package:ghosts/models/player.dart';
 
 class Match {
   int id = 0;
@@ -34,8 +34,10 @@ class Match {
       isot: value['IsOT'],
       ispenalty: value['IsPenalty']
     );
-    match.homeclub = Club.fromJson(value['HomeClub']);
-    match.awayclub = Club.fromJson(value['AwayClub']);
+    if (value['HomeClub'] != null)
+      match.homeclub = Club.fromJson(value['HomeClub']);
+    if (value['AwayClub'] != null)
+      match.awayclub = Club.fromJson(value['AwayClub']);
     return match;
   }
 }
@@ -145,7 +147,7 @@ class MatchStat {
       playernumber: value['PlayerNumber']
     );
     match.player = Player.fromJson(value['Player']);
-    //match.match = Match.fromJson(value['Match']);
+    match.match = Match.fromJson(value['Match']);
     return match;
   }
 }

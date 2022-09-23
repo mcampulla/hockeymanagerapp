@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/models/club.dart';
-import 'package:flutter_application_1/models/manager.service.dart';
-import 'package:flutter_application_1/models/settings.dart';
-import 'package:flutter_application_1/models/setuplocator.dart';
-import 'package:flutter_application_1/models/match.dart';
-import 'package:flutter_application_1/models/chart.dart';
+import 'package:ghosts/models/club.dart';
+import 'package:ghosts/models/manager.service.dart';
+import 'package:ghosts/models/settings.dart';
+import 'package:ghosts/models/setuplocator.dart';
+import 'package:ghosts/models/match.dart';
+import 'package:ghosts/models/chart.dart';
+import 'package:ghosts/models/tournament.dart';
+import 'package:ghosts/screens/playerchartscreen.dart';
+import 'package:ghosts/screens/playerstatscreen.dart';
+import 'package:ghosts/screens/seasondetailscreen.dart';
 
 class TeamChartScreen extends StatefulWidget {
-  final int id;
-  TeamChartScreen(this.id);
+  final int tournamentid;
+  final int id;  //phase
+  TeamChartScreen(this.tournamentid, this.id);
 
   @override
   _TeamChartScreenState createState() => _TeamChartScreenState();
@@ -19,12 +24,30 @@ class _TeamChartScreenState extends State<TeamChartScreen> {
   List<TeamChart> charts = [];
   int _currentSortColumn = 0;
   bool _isSortAsc = true;
+  Tournament tournament = Tournament();
+  List<Phase> phases = []; 
+  int currentPhase = 0;
   var manager;
 
   @override
   void initState() {
     super.initState();
     manager = locator<ManagerService>();
+    manager.getTournament(widget.tournamentid).then((data) {
+      setState(() {
+        this.tournament = data;
+      });
+    });
+    manager.getPhases(widget.tournamentid).then((data) {
+      setState(() {
+        this.phases = data;
+        if (data.length != 0 && widget.id == 0) {
+          this.currentPhase = data[0].id;
+        } else {
+          currentPhase = widget.id;
+        }
+      });
+    });
     manager.getMatchesByPhase(widget.id).then((data) {
       setState(() {
         this.matches = data;
@@ -37,11 +60,70 @@ class _TeamChartScreenState extends State<TeamChartScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("TeamChartScreen"),
+          title: Text("Classifica"),
         ),
+        bottomNavigationBar: BottomNavigationBar(
+          items: [
+            BottomNavigationBarItem(icon: Icon(Icons.calendar_view_month_outlined), label: 'Stagione'),
+            BottomNavigationBarItem(icon: Icon(Icons.article_outlined), label: 'Classifica'),
+            BottomNavigationBarItem(icon: Icon(Icons.account_circle_outlined), label: 'Giocatori'),
+            BottomNavigationBarItem(icon: Icon(Icons.add_chart_outlined), label: 'Statistiche')
+          ],
+          currentIndex: 1,
+          //selectedItemColor: Colors.amber[800],
+          type: BottomNavigationBarType.fixed,
+          fixedColor: Colors.orange.shade300,  
+          onTap: (int index) {
+            print(index.toString());
+            switch (index) {
+              case 0:
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SeasonDetailScreen(widget.tournamentid, currentPhase)));
+                break;
+              case 1:
+                //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TeamChartScreen(currentPhase)));
+                break;
+              case 2:
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerChartScreen(widget.tournamentid, currentPhase)));
+                break;
+              case 3:
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerStatScreen(widget.tournamentid, currentPhase)));
+                break;
+              default:
+            }              
+          },
+      ),
         body: ListView(
           children: [
-            _createDataTable()
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(tournament.name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,)),
+                  DropdownButton<int>(
+                  value: currentPhase,
+                  items: phases.map((Phase value) {
+                    return new DropdownMenuItem<int>(
+                      value: value.id,
+                      child: Text(
+                        value.name,
+                        style: TextStyle(fontSize: 24.0),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (shape) {
+                    print(shape);
+                    manager.getMatchesByPhase(shape).then((data) {
+                      setState(() {
+                        currentPhase = shape ?? 0;
+                        this.matches = data;
+                        charts = getTeamCharts(matches);
+                      });
+                    });
+                  }),
+              ],),
+            ),
+            currentPhase != 0 ? 
+            _createDataTable() : Center(child: CircularProgressIndicator())
           ],
         ),);
   }

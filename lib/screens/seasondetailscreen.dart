@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/screens/playerchartscreen.dart';
-import 'package:flutter_application_1/screens/playerstatscreen.dart';
-import 'package:flutter_application_1/screens/teamchartscreen.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_application_1/models/manager.service.dart';
-import 'package:flutter_application_1/models/setuplocator.dart';
-import 'package:flutter_application_1/models/tournament.dart';
-import 'package:flutter_application_1/models/match.dart';
-import 'package:flutter_application_1/models/settings.dart';
+import 'package:ghosts/screens/playerchartscreen.dart';
+import 'package:ghosts/screens/playerstatscreen.dart';
+import 'package:ghosts/screens/teamchartscreen.dart';
+import 'package:ghosts/models/manager.service.dart';
+import 'package:ghosts/models/setuplocator.dart';
+import 'package:ghosts/models/tournament.dart';
+import 'package:ghosts/models/match.dart';
+import 'package:ghosts/widget/match.dart';
 
 class SeasonDetailScreen extends StatefulWidget {
-  final int id;
-  SeasonDetailScreen(this.id);
+  final int tournamentid;
+  final int phaseid;
+  SeasonDetailScreen(this.tournamentid, this.phaseid);
 
   @override
   _SeasonDetailScreenState createState() => _SeasonDetailScreenState();
 }
 
 class _SeasonDetailScreenState extends State<SeasonDetailScreen> {
-  late Future<Tournament> futureTournament;
+  Tournament tournament = Tournament();
   List<Phase> phases = [];
   late Future<List<Matchday>> futureMatchdays;
   late Future<List<Match>> futureMatches;
@@ -29,18 +29,26 @@ class _SeasonDetailScreenState extends State<SeasonDetailScreen> {
   void initState() {
     super.initState();
     manager = locator<ManagerService>();
-    futureTournament = manager.getTournament(widget.id);
-    manager.getPhases(widget.id).then((data) {
+    manager.getTournament(widget.tournamentid).then((data) {
+      setState(() {
+        this.tournament = data;
+      });
+    });
+    manager.getPhases(widget.tournamentid).then((data) {
       setState(() {
         this.phases = data;
         if (data.length != 0) {
-          this.currentPhase = data[0].id;
+          if(widget.phaseid == 0) {
+            this.currentPhase = data[0].id;
+          } else {
+            this.currentPhase = widget.phaseid;
+          }
           futureMatchdays = manager.getMatchdays(currentPhase);
         }
       });
     });
     futureMatchdays = manager.getMatchdays(currentPhase);
-    futureMatches = manager.getMatches(widget.id);
+    futureMatches = manager.getMatches(widget.tournamentid);
   }
 
   @override
@@ -51,21 +59,28 @@ class _SeasonDetailScreenState extends State<SeasonDetailScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
           items: [
+            BottomNavigationBarItem(icon: Icon(Icons.calendar_view_month_outlined), label: 'Stagione'),
             BottomNavigationBarItem(icon: Icon(Icons.article_outlined), label: 'Classifica'),
             BottomNavigationBarItem(icon: Icon(Icons.account_circle_outlined), label: 'Giocatori'),
             BottomNavigationBarItem(icon: Icon(Icons.add_chart_outlined), label: 'Statistiche')
           ],
+          currentIndex: 0,
+          //selectedItemColor: Colors.amber[800],
+          type: BottomNavigationBarType.fixed,
+          fixedColor: Colors.orange.shade300,  
           onTap: (int index) {
-            print(index.toString());
             switch (index) {
               case 0:
-                Navigator.push(context, MaterialPageRoute(builder: (context) => TeamChartScreen(currentPhase)));
+                //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SeasonDetailScreen(currentPhase)));
                 break;
               case 1:
-                Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerChartScreen(currentPhase)));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TeamChartScreen(widget.tournamentid, currentPhase)));
                 break;
               case 2:
-                Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerStatScreen(currentPhase)));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerChartScreen(widget.tournamentid, currentPhase)));
+                break;
+              case 3:
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerStatScreen(widget.tournamentid, currentPhase)));
                 break;
               default:
             }              
@@ -75,25 +90,11 @@ class _SeasonDetailScreenState extends State<SeasonDetailScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Center(
-              child: FutureBuilder<Tournament>(
-            future: futureTournament,
-            builder: (context, snapshot) {
-              //print(snapshot.data);
-              if (snapshot.hasData) {
-                return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Text(snapshot.data!.id.toString()),
-                      Text(snapshot.data!.name),
-                    ]);
-              } else if (snapshot.hasError) {
-                return Text("${snapshot.error}");
-              }
-              return CircularProgressIndicator();
-            },
-          )),
-          Center(
-            child: DropdownButton<int>(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text(tournament.name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,)),
+                DropdownButton<int>(
                 value: currentPhase,
                 items: phases.map((Phase value) {
                   return new DropdownMenuItem<int>(
@@ -111,6 +112,8 @@ class _SeasonDetailScreenState extends State<SeasonDetailScreen> {
                     futureMatchdays = manager.getMatchdays(currentPhase);
                   });
                 }),
+
+            ],),
           ),
           Expanded(child: MatchdayList(futureMatchdays)),
           // ElevatedButton(
@@ -171,9 +174,9 @@ List<Widget> addMatches(Matchday mday) {
   for (Match item in mday.matches) {
     matches.add(Container(
         margin: EdgeInsets.all(5.0),
-        height: 100,
+        height: 110,
         decoration: BoxDecoration(color: Colors.grey[200]),
-        child: Center(child: MatchItem(item))));
+        child: Center(child: MatchItem(item, false))));
   }
   return matches;
 }
@@ -209,63 +212,4 @@ List<Widget> addMatches(Matchday mday) {
 //   }
 // }
 
-class MatchItem extends StatelessWidget {
-  final Match item;
 
-  @override
-  MatchItem(this.item);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      MatchItemClub(item.homeclub.icon, item.homeclub.tag),
-      MatchItemScore(item),
-      MatchItemClub(item.awayclub.icon, item.awayclub.tag),
-    ]);
-  }
-}
-
-class MatchItemClub extends StatelessWidget {
-  final String icon;
-  final String tag;
-  final String url = Settings().imageurl;
-
-  @override
-  MatchItemClub(this.icon, this.tag);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(children: [
-      Container(
-          width: 30,
-          height: 30,
-          //color: Colors.grey[300],
-          decoration: BoxDecoration(
-              image: DecorationImage(
-                  image: NetworkImage('$url$icon'), fit: BoxFit.cover))),
-      Text(tag)
-    ]);
-  }
-}
-
-class MatchItemScore extends StatelessWidget {
-  final Match item;
-
-  @override
-  MatchItemScore(this.item);
-
-  @override
-  Widget build(BuildContext context) {
-    final hs = item.homescore;
-    final as = item.awayscore;
-    final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm');
-
-    return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Text(
-        '$hs - $as',
-        style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
-      ),
-      Text(formatter.format(item.matchdate))
-    ]);
-  }
-}
