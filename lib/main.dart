@@ -12,7 +12,7 @@ void main() {
   setupLocator();
   runApp(
     MaterialApp(
-      title: 'Named Routes Demo',
+      title: 'Ghosts Statistics',
       // Start the app with the "/" named route. In this case, the app starts
       // on the FirstScreen widget.
       initialRoute: '/',
